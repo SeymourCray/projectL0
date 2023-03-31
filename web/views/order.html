@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Orders</title>
+</head>
+<body>
+    <div class="container d-flex justify-content-center flex-column align-items-center">
+    <form class="form-inline mt-3" method="get" action="/orders">
+        <div class="form-group mx-sm-3 mb-2">
+            <input type="text" class="form-control" name="order_uid" placeholder="Enter order ID">
+        </div>
+        <button type="submit" class="btn btn-success mb-2">Check</button>
+    </form>
+    <div class="container mb-5">
+        <strong>
+            Order UID: {{.OrderUID}} <br>
+            Track number: {{.TrackNumber}} <br>
+            Entry: {{.Entry}} <br>
+            Delivery: <br>
+        </strong>
+        <article class="ml-5">
+            <small>
+                Name: {{.Delivery.Name}} <br>
+                Phone: {{.Delivery.Phone}} <br>
+                Zip: {{.Delivery.Zip}} <br>
+                City: {{.Delivery.City}} <br>
+                Address: {{.Delivery.Address}} <br>
+                Region: {{.Delivery.Region}} <br>
+                Email: {{.Delivery.Email}}
+            </small>
+        </article>
+        <strong >
+            Payment: <br>
+        </strong>
+        <article class="ml-5">
+            <small>
+                Transaction: {{.Payment.Transaction}} <br>
+                Request ID: {{.Payment.RequestID}} <br>
+                Currency: {{.Payment.Currency}} <br>
+                Provider: {{.Payment.Provider}} <br>
+                Amount: {{.Payment.Amount}} <br>
+                Payment Dt: {{.Payment.PaymentDt}} <br>
+                Bank: {{.Payment.Bank}} <br>
+                Delivery cost: {{.Payment.DeliveryCost}} <br>
+                Goods total: {{.Payment.GoodsTotal}} <br>
+                Custom fee: {{.Payment.CustomFee}}
+            </small>
+        </article>
+        <strong> 
+            Items: 
+        </strong>
+        <ul>
+            {{ range .Items }}
+            <article class="ml-5">
+                <small>
+                    Chart ID: {{.ChartID}} <br>
+                    Track number: {{.TrackNumber}} <br>
+                    Price: {{.Price}} <br>
+                    Rid: {{.Rid}} <br>
+                    Name: {{.Name}} <br>
+                    Sale: {{.Sale}} <br>
+                    Size: {{.Size}} <br>
+                    Total price: {{.TotalPrice}} <br>
+                    Nm ID: {{.NmID}} <br>
+                    Brand: {{.Brand}} <br>
+                    Status: {{.Status}}
+                </small>
+            </article>
+            {{end}}
+        </ul>
+        <strong>
+            Locale: {{.Locale}} <br>
+            Internal signature: {{.InternalSignature}} <br>
+            Customer ID: {{.CustomerID}} <br>
+            Delivery service: {{.DeliveryService}} <br>
+            Shardkey: {{.Shardkey}} <br>
+            Sm ID: {{.SmID}} <br>
+            Date created: {{.DateCreated}} <br>
+            Oof shard: {{.OofShard}}
+        </strong>
+    </div>
+    </div>
+</body>
+</html>
