@@ -17,7 +17,7 @@ func NewOrderController(app *fiber.App, repo repository.OrderRepo) *OrderControl
 func (controller *OrderController) GetOrder(ctx *fiber.Ctx) error {
 	orderUID := ctx.Query("order_uid")
 
-	order, _ := controller.repo.GetOrderByID(orderUID)
+	order := controller.repo.GetOrderByID(orderUID)
 
 	return ctx.Render("order", order)
 }

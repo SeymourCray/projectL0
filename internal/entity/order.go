@@ -51,7 +51,7 @@ type Order struct {
 	SmID              int32     `json:"sm_id" db:"sm_id"`
 	DateCreated       time.Time `json:"date_created" db:"date_created"`
 	OofShard          string    `json:"oof_shard" db:"oof_shard"`
-	Delivery
-	Payment
-	Items []Item
+	Delivery          `json:"delivery"`
+	Payment           `json:"payment"`
+	Items             []Item
 }

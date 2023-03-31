@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"errors"
 	"github.com/jmoiron/sqlx"
 	"log"
 	"projectL0/internal/entity"
+	"sync"
 )
 
 const (
@@ -19,24 +19,32 @@ const (
 		`INNER JOIN items i ON io.chrt_id=i.chrt_id ` +
 		`WHERE io.order_uid=$1 `
 	insertOrderQuery     = `INSERT INTO orders VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
-	insertItemQuery      = `INSERT INTO items VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
+	insertItemQuery      = `INSERT INTO items VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (chrt_id) DO NOTHING;`
 	insertDeliveryQuery  = `INSERT INTO deliveries (name, phone, zip, city, address, region, email, order_uid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
 	insertPaymentQuery   = `INSERT INTO payments VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
 	insertItemOrderQuery = `INSERT INTO items_orders (order_uid, chrt_id) VALUES ($1, $2);`
 )
 
 type OrderRepo interface {
-	GetOrderByID(OrderUID string) (entity.Order, error)
+	GetOrderByID(OrderUID string) entity.Order
 	InsertOrder(order entity.Order)
+}
+
+type cashedOrders struct {
+	sync.RWMutex
+	orders map[string]entity.Order
 }
 
 type OrderRepository struct {
 	Connection   *sqlx.DB
-	cashedOrders []entity.Order
+	cashedOrders cashedOrders
 }
 
 func NewOrderRepository(connection *sqlx.DB) *OrderRepository {
-	var orders []entity.Order
+	var (
+		orders    []entity.Order
+		ordersMap = make(map[string]entity.Order)
+	)
 
 	err := connection.Select(&orders, getAllQuery)
 	if err != nil {
@@ -48,9 +56,11 @@ func NewOrderRepository(connection *sqlx.DB) *OrderRepository {
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+
+		ordersMap[order.OrderUID] = order
 	}
 
-	return &OrderRepository{Connection: connection, cashedOrders: orders}
+	return &OrderRepository{Connection: connection, cashedOrders: cashedOrders{orders: ordersMap}}
 }
 
 func (p *OrderRepository) InsertOrder(order entity.Order) {
@@ -80,21 +90,21 @@ func (p *OrderRepository) InsertOrder(order entity.Order) {
 		return
 	}
 
-	p.cashedOrders = append(p.cashedOrders, order)
+	p.cashedOrders.Lock()
+
+	defer p.cashedOrders.Unlock()
+
+	p.cashedOrders.orders[order.OrderUID] = order
+
 	log.Println("new order inserted")
 }
 
-func (p *OrderRepository) GetOrderByID(orderUID string) (entity.Order, error) {
-	var foundedOrder entity.Order
+func (p *OrderRepository) GetOrderByID(orderUID string) entity.Order {
+	p.cashedOrders.Lock()
 
-	err := errors.New("order not found")
+	defer p.cashedOrders.Unlock()
 
-	for _, order := range p.cashedOrders {
-		if order.OrderUID == orderUID {
-			foundedOrder = order
-			err = nil
-		}
-	}
+	foundedOrder, _ := p.cashedOrders.orders[orderUID]
 
-	return foundedOrder, err
+	return foundedOrder
 }
